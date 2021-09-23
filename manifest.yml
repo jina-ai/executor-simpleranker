@@ -1,0 +1,5 @@
+manifest_version: 1
+name: SimpleRanker
+description: SimpleRanker aggregrates the matches according to scores
+url: https://github.com/jina-ai/executors/tree/main/jinahub/rankers/SimpleRanker
+keywords: [ranker, aggregation]
