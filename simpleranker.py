@@ -20,7 +20,7 @@ class SimpleRanker(Executor):
         self,
         metric: str = 'cosine',
         ranking: str = 'min',
-        traversal_paths: Iterable[str] = ('r',),
+        traversal_paths: str = 'r',
         *args,
         **kwargs
     ):
@@ -32,7 +32,7 @@ class SimpleRanker(Executor):
             - max: Select maximum score/distance and sort by maximum
             - mean_min: Calculate mean score/distance and sort by minimum mean
             - mean_max: Calculate mean score/distance and sort by maximum mean
-        :param traversal_paths: traverse path on docs, e.g. ['r'], ['c']
+        :param traversal_paths: traverse path on docs, e.g. 'r', 'c'
         """
         super().__init__(*args, **kwargs)
         self.metric = metric

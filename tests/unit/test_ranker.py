@@ -5,7 +5,7 @@ import pytest
 from simpleranker import SimpleRanker
 
 
-@pytest.mark.parametrize('traversal_paths', [['r'], ['c']])
+@pytest.mark.parametrize('traversal_paths', ['r', 'c'])
 @pytest.mark.parametrize('ranking', ['min', 'max'])
 def test_ranking(documents_chunk, documents_chunk_chunk, traversal_paths, ranking):
     ranker = SimpleRanker(
@@ -13,7 +13,7 @@ def test_ranking(documents_chunk, documents_chunk_chunk, traversal_paths, rankin
         ranking=ranking,
         traversal_paths=traversal_paths,
     )
-    if traversal_paths == ['r']:
+    if traversal_paths == 'r':
         ranking_docs = documents_chunk
     else:
         ranking_docs = documents_chunk_chunk
@@ -40,7 +40,7 @@ def test_ranking(documents_chunk, documents_chunk_chunk, traversal_paths, rankin
 
 @pytest.mark.parametrize('ranking', ['mean_min', 'mean_max'])
 def test_mean_ranking(documents_chunk, ranking):
-    traversal_paths = ['r']
+    traversal_paths = 'r'
     ranker = SimpleRanker(
         metric='cosine',
         ranking=ranking,
