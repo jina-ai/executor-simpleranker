@@ -16,6 +16,6 @@ def test_integration(documents_chunk):
                 match = doc.matches[i]
                 assert match.tags
                 assert (
-                    match.scores['cosine'].value
-                    <= doc.matches[i + 1].scores['cosine'].value
+                    match.scores['cosine']
+                    <= doc.matches[i + 1].scores['cosine']
                 )

@@ -20,7 +20,7 @@ class SimpleRanker(Executor):
         self,
         metric: str = 'cosine',
         ranking: str = 'min',
-        traversal_paths: Iterable[str] = ('r',),
+        traversal_paths: str = '@r',
         *args,
         **kwargs
     ):
@@ -44,7 +44,7 @@ class SimpleRanker(Executor):
     def rank(self, docs: DocumentArray, parameters: Dict, *args, **kwargs):
         traversal_paths = parameters.get('traversal_paths', self.traversal_paths)
 
-        for doc in docs.traverse_flat(traversal_paths):
+        for doc in docs[traversal_paths]:
             matches_of_chunks = []
             for chunk in doc.chunks:
                 matches_of_chunks.extend(chunk.matches)
@@ -55,16 +55,16 @@ class SimpleRanker(Executor):
             for key, group in groups:
                 chunk_match_list = list(group)
                 if self.ranking == 'min':
-                    chunk_match_list.sort(key=lambda m: m.scores[self.metric].value)
+                    chunk_match_list = DocumentArray(sorted(chunk_match_list,key=lambda m: m.scores[self.metric]))
                 elif self.ranking == 'max':
-                    chunk_match_list.sort(key=lambda m: -m.scores[self.metric].value)
+                    chunk_match_list = DocumentArray(sorted(chunk_match_list,key=lambda m: -m.scores[self.metric]))
                 match = chunk_match_list[0]
                 match.id = chunk_match_list[0].parent_id
                 if self.ranking in ['mean_min', 'mean_max']:
-                    scores = [el.scores[self.metric].value for el in chunk_match_list]
+                    scores = [el.scores[self.metric] for el in chunk_match_list]
                     match.scores[self.metric] = sum(scores) / len(scores)
                 doc.matches.append(match)
             if self.ranking in ['min', 'mean_min']:
-                doc.matches.sort(key=lambda d: d.scores[self.metric].value)
+                doc.matches = DocumentArray(sorted(doc.matches, key=lambda d: d.scores[self.metric]))
             elif self.ranking in ['max', 'mean_max']:
-                doc.matches.sort(key=lambda d: -d.scores[self.metric].value)
+                doc.matches = DocumentArray(sorted(doc.matches, key=lambda d: -d.scores[self.metric]))

@@ -17,7 +17,7 @@ def documents_chunk():
                 }
             )
             match.scores['cosine'] = random.random()
-            match.parent_id = i
+            match.parent_id = str(i)
             chunk.matches.append(match)
         document.chunks.append(chunk)
 
