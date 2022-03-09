@@ -1,6 +1,7 @@
 import random
 
 import pytest
+from docarray.score import NamedScore
 from jina import Document, DocumentArray
 
 
@@ -16,7 +17,7 @@ def documents_chunk():
                     'level': 'chunk',
                 }
             )
-            match.scores['cosine'] = random.random()
+            match.scores['cosine'] = NamedScore(value=random.random())
             match.parent_id = str(i)
             chunk.matches.append(match)
         document.chunks.append(chunk)
@@ -40,7 +41,7 @@ def documents_chunk_chunk():
                         'level': 'chunk',
                     }
                 )
-                match.scores['cosine'] = random.random()
+                match.scores['cosine'] = NamedScore(value=random.random())
                 match.parent_id = j
                 chunk_chunk.matches.append(match)
             chunk.chunks.append(chunk_chunk)

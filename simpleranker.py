@@ -2,9 +2,11 @@ __copyright__ = "Copyright (c) 2020-2021 Jina AI Limited. All rights reserved."
 __license__ = "Apache-2.0"
 
 from itertools import groupby
-from typing import Dict, Iterable
+from typing import Dict
 
+from docarray.score import NamedScore
 from jina import DocumentArray, Executor, requests
+from jina.logging.logger import JinaLogger
 
 
 class SimpleRanker(Executor):
@@ -22,7 +24,7 @@ class SimpleRanker(Executor):
         ranking: str = 'min',
         traversal_paths: str = '@r',
         *args,
-        **kwargs
+        **kwargs,
     ):
         """
         :param metric: the distance metric used in `scores`
@@ -35,9 +37,11 @@ class SimpleRanker(Executor):
         :param traversal_paths: traverse path on docs, e.g. ['r'], ['c']
         """
         super().__init__(*args, **kwargs)
+        self.logger = JinaLogger('ranker')
         self.metric = metric
         assert ranking in ['min', 'max', 'mean_min', 'mean_max']
         self.ranking = ranking
+        self.logger.warning(f'ranking = {self.ranking}')
         self.traversal_paths = traversal_paths
 
     @requests(on='/search')
@@ -55,16 +59,30 @@ class SimpleRanker(Executor):
             for key, group in groups:
                 chunk_match_list = list(group)
                 if self.ranking == 'min':
-                    chunk_match_list = DocumentArray(sorted(chunk_match_list,key=lambda m: m.scores[self.metric]))
+                    chunk_match_list = DocumentArray(
+                        sorted(
+                            chunk_match_list, key=lambda m: m.scores[self.metric].value
+                        )
+                    )
                 elif self.ranking == 'max':
-                    chunk_match_list = DocumentArray(sorted(chunk_match_list,key=lambda m: -m.scores[self.metric]))
+                    chunk_match_list = DocumentArray(
+                        sorted(
+                            chunk_match_list, key=lambda m: -m.scores[self.metric].value
+                        )
+                    )
                 match = chunk_match_list[0]
                 match.id = chunk_match_list[0].parent_id
                 if self.ranking in ['mean_min', 'mean_max']:
-                    scores = [el.scores[self.metric] for el in chunk_match_list]
-                    match.scores[self.metric] = sum(scores) / len(scores)
+                    scores = [el.scores[self.metric].value for el in chunk_match_list]
+                    match.scores[self.metric] = NamedScore(
+                        value=sum(scores) / len(scores), op_name=self.ranking
+                    )
                 doc.matches.append(match)
             if self.ranking in ['min', 'mean_min']:
-                doc.matches = DocumentArray(sorted(doc.matches, key=lambda d: d.scores[self.metric]))
+                doc.matches = DocumentArray(
+                    sorted(doc.matches, key=lambda d: d.scores[self.metric].value)
+                )
             elif self.ranking in ['max', 'mean_max']:
-                doc.matches = DocumentArray(sorted(doc.matches, key=lambda d: -d.scores[self.metric]))
+                doc.matches = DocumentArray(
+                    sorted(doc.matches, key=lambda d: -d.scores[self.metric].value)
+                )

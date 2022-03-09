@@ -28,13 +28,13 @@ def test_ranking(documents_chunk, documents_chunk_chunk, traversal_paths, rankin
             assert match.tags
             if ranking == 'min':
                 assert (
-                    match.scores['cosine']
-                    <= doc.matches[i + 1].scores['cosine']
+                    match.scores['cosine'].value
+                    <= doc.matches[i + 1].scores['cosine'].value
                 )
             else:
                 assert (
-                    match.scores['cosine']
-                    >= doc.matches[i + 1].scores['cosine']
+                    match.scores['cosine'].value
+                    >= doc.matches[i + 1].scores['cosine'].value
                 )
 
 
@@ -53,7 +53,7 @@ def test_mean_ranking(documents_chunk, ranking):
         scores = []
         for match in doc.matches:
             scores.append(match.scores['cosine'])
-        mean_scores.append(sum(scores) / 10)
+        mean_scores.append(sum([s.value for s in scores]) / 10)
     mean_scores.sort(reverse=ranking == 'mean_max')
     ranker.rank(ranking_docs, parameters={})
     assert ranking_docs
@@ -63,4 +63,4 @@ def test_mean_ranking(documents_chunk, ranking):
         for i in range(len(doc.matches) - 1):
             match = doc.matches[i]
             assert match.tags
-            assert match.scores['cosine'] == pytest.approx(mean_scores[i], 1e-5)
+            assert match.scores['cosine'].value == pytest.approx(mean_scores[i], 1e-5)
