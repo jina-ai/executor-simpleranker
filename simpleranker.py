@@ -50,8 +50,7 @@ class SimpleRanker(Executor):
 
         for doc in docs[traversal_paths]:
             matches_of_chunks = []
-            for m in doc.matches:
-                matches_of_chunks.extend(m)
+            matches_of_chunks.extend(doc.matches)
             doc.matches.clear()
             for chunk in doc.chunks:
                 matches_of_chunks.extend(chunk.matches)
