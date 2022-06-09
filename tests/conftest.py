@@ -42,10 +42,29 @@ def documents_chunk_chunk():
                     }
                 )
                 match.scores['cosine'] = NamedScore(value=random.random())
-                match.parent_id = j
+                match.parent_id = str(j)
                 chunk_chunk.matches.append(match)
             chunk.chunks.append(chunk_chunk)
         document.chunks.append(chunk)
+
+    document_array.extend([document])
+    return document_array
+
+
+@pytest.fixture
+def documents_no_chunk():
+    document_array = DocumentArray()
+    document = Document(tags={'query_size': 35, 'query_price': 31, 'query_brand': 1})
+    for i in range(0, 10):
+
+        match = Document(
+            tags={
+                'level': 'root',
+            }
+        )
+        match.scores['cosine'] = NamedScore(value=random.random())
+
+        document.matches.append(match)
 
     document_array.extend([document])
     return document_array
