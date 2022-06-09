@@ -1,7 +1,7 @@
 __copyright__ = "Copyright (c) 2020-2021 Jina AI Limited. All rights reserved."
 __license__ = "Apache-2.0"
 
-from itertools import groupby
+from itertools import groupby, chain
 from typing import Dict
 
 from docarray.score import NamedScore
@@ -50,7 +50,12 @@ class SimpleRanker(Executor):
 
         for doc in docs[traversal_paths]:
             matches_of_chunks = []
-            matches_of_chunks.extend(doc.matches)
+            matches_no_parent = []
+            for m in doc.matches:
+                if m.parent_id is not None:
+                    matches_of_chunks.append(m)
+                else:
+                    matches_no_parent.append(m)
             doc.matches.clear()
             for chunk in doc.chunks:
                 matches_of_chunks.extend(chunk.matches)
@@ -58,7 +63,8 @@ class SimpleRanker(Executor):
                 sorted(matches_of_chunks, key=lambda d: d.parent_id),
                 lambda d: d.parent_id,
             )
-            for key, group in groups:
+            groups_no_parent = groupby(matches_no_parent)
+            for key, group in chain(groups, groups_no_parent):
                 chunk_match_list = list(group)
                 if self.ranking == 'min':
                     chunk_match_list = DocumentArray(
