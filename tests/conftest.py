@@ -42,7 +42,7 @@ def documents_chunk_chunk():
                     }
                 )
                 match.scores['cosine'] = NamedScore(value=random.random())
-                match.parent_id = j
+                match.parent_id = str(j)
                 chunk_chunk.matches.append(match)
             chunk.chunks.append(chunk_chunk)
         document.chunks.append(chunk)
