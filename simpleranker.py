@@ -1,8 +1,9 @@
 __copyright__ = "Copyright (c) 2020-2021 Jina AI Limited. All rights reserved."
 __license__ = "Apache-2.0"
+import warnings
 
 from itertools import groupby
-from typing import Dict
+from typing import Dict, Optional
 
 from docarray.score import NamedScore
 from jina import DocumentArray, Executor, requests
@@ -22,7 +23,8 @@ class SimpleRanker(Executor):
         self,
         metric: str = 'cosine',
         ranking: str = 'min',
-        traversal_paths: str = '@r',
+        access_paths: str = '@r',
+        traversal_paths: Optional[str] = None,
         *args,
         **kwargs,
     ):
@@ -34,7 +36,8 @@ class SimpleRanker(Executor):
             - max: Select maximum score/distance and sort by maximum
             - mean_min: Calculate mean score/distance and sort by minimum mean
             - mean_max: Calculate mean score/distance and sort by maximum mean
-        :param traversal_paths: traverse path on docs, e.g. ['r'], ['c']
+        :param access_paths: traverse path on docs, e.g. ['r'], ['c']
+        :param traversal_paths: please use access_paths
         """
         super().__init__(*args, **kwargs)
         self.logger = JinaLogger('ranker')
@@ -42,13 +45,19 @@ class SimpleRanker(Executor):
         assert ranking in ['min', 'max', 'mean_min', 'mean_max']
         self.ranking = ranking
         self.logger.warning(f'ranking = {self.ranking}')
-        self.traversal_paths = traversal_paths
+        if traversal_paths is not None:
+            self.access_paths = traversal_paths
+            warnings.warn("'traversal_paths' will be deprecated in the future, please use 'access_paths'.",
+                          DeprecationWarning,
+                          stacklevel=2)
+        else:
+            self.access_paths = access_paths
 
     @requests(on='/search')
     def rank(self, docs: DocumentArray, parameters: Dict, *args, **kwargs):
-        traversal_paths = parameters.get('traversal_paths', self.traversal_paths)
+        access_paths = parameters.get('access_paths', self.access_paths)
 
-        for doc in docs[traversal_paths]:
+        for doc in docs[access_paths]:
             matches_of_chunks = []
             matches_of_chunks.extend(doc.matches)
             doc.matches.clear()
